@@ -1,29 +1,22 @@
-from flask import Flask, render_template, send_file
 import requests
-from bs4 import BeautifulSoup
 import pandas as pd
 from googletrans import Translator
 
-app = Flask(__name__)
-
 def fetch_us_stocks():
-    url = "https://stockanalysis.com/stocks/"
-    headers = {
-        "User-Agent": "Mozilla/5.0"
-    }
-    response = requests.get(url, headers=headers)
-    soup = BeautifulSoup(response.text, 'html.parser')
-    table = soup.find('table')
+    url = "https://query1.finance.yahoo.com/v1/finance/screener/predefined/saved?count=100&scrIds=most_actives"
+    response = requests.get(url, timeout=10)
+    data = response.json()
 
-    symbols, names_en = [], []
-    if table:
-        rows = table.find_all('tr')[1:]
-        for row in rows:
-            cols = row.find_all('td')
-            if len(cols) >= 2:
-                symbols.append(cols[0].text.strip())
-                names_en.append(cols[1].text.strip())
+    results = data.get("finance", {}).get("result", [])[0].get("quotes", [])
 
+    symbols = []
+    names_en = []
+
+    for stock in results:
+        symbols.append(stock.get("symbol", ""))
+        names_en.append(stock.get("shortName", "N/A"))
+
+    # 翻译为日文
     translator = Translator()
     names_ja = []
     for name in names_en:
@@ -34,9 +27,9 @@ def fetch_us_stocks():
             names_ja.append("翻訳失敗")
 
     df = pd.DataFrame({
-        '銘柄コード': symbols,
-        '会社名（英語）': names_en,
-        '会社名（日本語訳）': names_ja
+        "銘柄コード": symbols,
+        "会社名（英語）": names_en,
+        "会社名（日本語訳）": names_ja
     })
     df.to_csv("米国株一覧_日本語.csv", index=False, encoding='utf-8-sig')
     return df
