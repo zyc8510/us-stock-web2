@@ -3,7 +3,7 @@ import pandas as pd
 from googletrans import Translator
 
 def fetch_us_stocks():
-    url = "https://query1.finance.yahoo.com/v1/finance/screener/predefined/saved?count=100&scrIds=most_actives"
+    url = "https://finance.yahoo.com/screener/predefined/ms_technology"
     response = requests.get(url, timeout=10)
     data = response.json()
 
