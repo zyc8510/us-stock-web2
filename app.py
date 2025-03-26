@@ -50,5 +50,8 @@ def scrape():
     fetch_us_stocks()
     return send_file("米国株一覧_日本語.csv", as_attachment=True)
 
+import os
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 10000))  # 从环境变量 PORT 读取端口
+    app.run(host="0.0.0.0", port=port, debug=True)
